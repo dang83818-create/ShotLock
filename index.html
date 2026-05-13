@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𝙎𝙃𝙊𝙏𝙇𝙊𝘾𝙆 𝙑𝙄𝙋</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        :root { --red: #ff1a1a; --dark: #050505; --neon: #00ffcc; --fire: #ff4d00; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 10px; background: var(--dark); font-family: 'Share Tech Mono', monospace; color: #fff; overflow: hidden; height: 100vh; display: flex; justify-content: center; align-items: center; }
+
+        /* HOA ĐÀO */
+        #sakura-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .sakura { position: absolute; background: linear-gradient(135deg, #ff99cc, #ff4d94); border-radius: 10px 0 10px 0; animation: fall linear infinite; opacity: 0.6; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+        /* LASER QUÉT (LAYZE) */
+        .laser-line { position: absolute; width: 100%; height: 2px; background: var(--red); box-shadow: 0 0 15px var(--red); top: -10px; z-index: 5; animation: scan 3s infinite linear; opacity: 0.8; }
+        @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+
+        /* PANEL CHÍNH */
+        .panel { width: 100%; max-width: 380px; background: rgba(10, 0, 0, 0.95); border: 2px solid var(--red); border-radius: 15px; position: relative; z-index: 10; backdrop-filter: blur(10px); box-shadow: 0 0 30px rgba(255,0,0,0.6); display: flex; flex-direction: column; }
+        
+        .header { text-align: center; padding: 15px; border-bottom: 1px solid var(--red); }
+        .glitch { font-size: 28px; color: #fff; text-shadow: 2px 2px var(--red); animation: glitch-anim 0.2s infinite alternate; }
+        @keyframes glitch-anim { 0% { transform: skew(1deg); } 100% { transform: skew(-1deg); text-shadow: -2px -2px #00f2ff; } }
+
+        /* FPS & CPU */
+        .stats-box { display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(255,255,255,0.03); font-size: 11px; color: var(--neon); }
+        canvas#graph { width: 100%; height: 40px; background: rgba(0,0,0,0.3); margin-bottom: 10px; }
+
+        .shizuku-box { margin: 10px; padding: 10px; border: 1px dashed #00c8ff; border-radius: 8px; text-align: center; }
+        .shizuku-btn { background: #00c8ff11; border: 1px solid #00c8ff; color: #00c8ff; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+
+        .content { padding: 5px 15px; overflow-y: auto; max-height: 320px; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(255,255,255,0.04); border-radius: 10px; margin-bottom: 10px; border: 1px solid #222; transition: 0.2s; cursor: pointer; }
+        .item.active { border-color: var(--red); background: rgba(255,0,0,0.15); box-shadow: 0 0 15px rgba(255,0,0,0.3); }
+        .item:active { animation: fire-burst 0.5s ease-out; }
+        
+        @keyframes fire-burst { 0% { box-shadow: 0 0 0 0 var(--fire); } 100% { box-shadow: 0 0 20px 40px rgba(255, 77, 0, 0); } }
+
+        /* SWITCH */
+        .sw { position: relative; width: 44px; height: 24px; }
+        .sw input { opacity: 0; width: 0; height: 0; }
+        .sl { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #333; border-radius: 20px; transition: 0.4s; }
+        .sl:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #888; border-radius: 50%; transition: 0.4s; }
+        input:checked + .sl { background: var(--red); }
+        input:checked + .sl:before { transform: translateX(20px); background: #fff; box-shadow: 0 0 10px #fff; }
+
+        .terminal { margin: 5px 15px 15px; background: #000; border: 1px solid #300; border-radius: 8px; height: 100px; padding: 10px; font-size: 10px; color: var(--neon); overflow-y: auto; }
+        .log-ok { color: var(--neon); font-weight: bold; }
+        .log-warn { color: #ffcc00; }
+    </style>
+</head>
+<body>
+
+<div id="sakura-container"></div>
+<div class="laser-line"></div>
+
+<div class="panel">
+    <div class="header">
+        <h1 class="glitch">𝘼𝙄𝙈𝙇𝙊𝘾𝙼 𝙑𝙄𝙋</h1>
+        <div style="font-size: 9px; color: var(--red); letter-spacing: 2px;">BẢN QUYỀN QUANGKHAI X ADR</div>
+    </div>
+
+    <div class="shizuku-box">
+        <button class="shizuku-btn" onclick="this.innerHTML='SHIZUKU ĐÃ KẾT NỐI ✓'; this.style.color='#00ffcc';">SHIZUKU CHƯA KẾT NỐI</button>
+    </div>
+
+    <div class="stats-box">
+        <span>FPS: <span id="fps">60</span></span>
+        <span>CPU: <span id="cpu">30%</span></span>
+    </div>
+    <canvas id="graph"></canvas>
+
+    <div class="content">
+        <div class="item" onclick="toggleMod(this, 'AIMLOCK_HEAD')">
+            <div><b>AIMLOCK HEAD VIP</b><i style="display:block; font-size:10px; color:#777;">Chỉ định file .lua vào Data</i></div>
+            <label class="sw"><input type="checkbox"><span class="sl"></span></label>
+        </div>
+        <div class="item" onclick="toggleMod(this, 'TRACKING')">
+            <div><b>BÁM MŨ 100%</b><i style="display:block; font-size:10px; color:#777;">Chống giật & Tracking...</i></div>
+            <label class="sw"><input type="checkbox"><span class="sl"></span></label>
+        </div>
+        <div class="item" onclick="toggleMod(this, 'DPI')">
+            <div><b>TỐI ƯU CẢM ỨNG (DPI)</b><i style="display:block; font-size:10px; color:#777;">Tăng độ nhạy màn hình</i></div>
+            <label class="sw"><input type="checkbox"><span class="sl"></span></label>
+        </div>
+        <div class="item" onclick="toggleMod(this, 'BYPASS')">
+            <div><b>BYPASS ANTI-CHEAT</b><i style="display:block; font-size:10px; color:#777;">Ngăn Garena quét mã MD5</i></div>
+            <label class="sw"><input type="checkbox"><span class="sl"></span></label>
+        </div>
+    </div>
+
+    <div class="terminal" id="term">> System Ready...</div>
+</div>
+
+<script>
+    const term = document.getElementById('term');
+    function log(txt, cls='') {
+        const d = document.createElement('div');
+        d.className = cls; d.innerHTML = `> ${txt}`;
+        term.appendChild(d); term.scrollTop = term.scrollHeight;
+    }
+
+    function toggleMod(el, name) {
+        const cb = el.querySelector('input');
+        cb.checked = !cb.checked;
+        if(cb.checked) {
+            el.classList.add('active');
+            log(`[+] INJECTING: ${name}...`, 'log-warn');
+            setTimeout(() => {
+                log(`[0x${Math.random().toString(16).slice(2,8).toUpperCase()}] Offset Success`, 'log-code');
+                log(`${name} SUCCESS ✓`, 'log-ok');
+            }, 500);
+        } else {
+            el.classList.remove('active');
+            log(`[-] REMOVED: ${name}`);
+        }
+    }
+
+    // FPS/CPU SIMULATOR
+    setInterval(() => {
+        document.getElementById('fps').innerText = Math.floor(Math.random() * 5) + 57;
+        document.getElementById('cpu').innerText = Math.floor(Math.random() * 10) + 25 + "%";
+    }, 1000);
+
+    // GRAPH DRAWING
+    const canvas = document.getElementById('graph');
+    const ctx = canvas.getContext('2d');
+    let points = [];
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#ff1a1a'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        points.push(Math.random() * 20 + 10);
+        if(points.length > 50) points.shift();
+        for(let i=0; i<points.length; i++) {
+            ctx.lineTo(i * (canvas.width/50), points[i]);
+        }
+        ctx.stroke();
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    // SAKURA
+    setInterval(() => {
+        const s = document.createElement('div');
+        s.className = 'sakura';
+        s.style.width = '8px'; s.style.height = '8px';
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.top = '-10px';
+        s.style.animationDuration = Math.random() * 3 + 4 + 's';
+        document.getElementById('sakura-container').appendChild(s);
+        setTimeout(() => s.remove(), 5000);
+    }, 400);
+</script>
+</body>
+</html>
